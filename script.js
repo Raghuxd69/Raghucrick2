@@ -20,7 +20,7 @@ const db = getDatabase(app);
 // State variables
 let currentRoom = null;
 let playerName = '';
-let currentTurn = '';
+let currentTurn = 'player1';
 let scores = {};
 
 // Functions
@@ -31,22 +31,13 @@ function goBack(page) {
     document.getElementById('gameArea').style.display = page === 'gameArea' ? 'block' : 'none';
 }
 
-function showGameModeOptions() {
-    playerName = prompt('Enter your name:');
-    if (playerName) {
-        goBack('multiplayerOptions');
-    } else {
-        alert('Please enter your name to proceed.');
+function startGame() {
+    playerName = document.getElementById('playerName').value.trim();
+    if (!playerName) {
+        alert('Please enter your name.');
+        return;
     }
-}
-
-function startMultiplayer() {
-    goBack('roomOptions');
-}
-
-function startComputer() {
-    goBack('gameArea');
-    startGame(true); // True indicates playing against computer
+    goBack('multiplayerOptions');
 }
 
 function createRoom() {
@@ -57,41 +48,45 @@ function createRoom() {
         player2: null,
         scores: {
             [playerName]: 0,
-            'Computer': 0
+            'Player 2': 0
         },
         turns: 'player1',
         runs: {
             [playerName]: 0,
-            'Computer': 0
+            'Player 2': 0
         }
     }).then(() => {
         goBack('gameArea');
-        startGame(false); // False indicates playing with another player
+        startGameLoop();
     }).catch((error) => {
         console.error('Error creating room:', error);
     });
 }
 
 function joinRoom() {
-    const roomCode = document.getElementById('roomCodeInput').value;
-    currentRoom = roomCode;
+    const roomCode = document.getElementById('roomCodeInput').value.trim();
+    if (!roomCode) {
+        alert('Please enter a room code.');
+        return;
+    }
 
+    currentRoom = roomCode;
     get(ref(db, 'rooms/' + roomCode)).then((snapshot) => {
         if (snapshot.exists()) {
             const roomData = snapshot.val();
-            if (roomData.player2 === null) {
+            if (!roomData.player2) {
                 set(ref(db, 'rooms/' + roomCode + '/player2'), playerName)
                     .then(() => {
                         goBack('gameArea');
-                        startGame(false);
+                        startGameLoop();
                     }).catch((error) => {
                         console.error('Error joining room:', error);
                     });
             } else {
-                alert('Room is full or already started');
+                alert('Room is full or already started.');
             }
         } else {
-            alert('Room not found');
+            alert('Room not found.');
         }
     }).catch((error) => {
         console.error('Error fetching room data:', error);
@@ -102,7 +97,7 @@ function generateRoomCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function startGame(againstComputer) {
+function startGameLoop() {
     const timerDisplay = document.getElementById('timer');
     const runButtons = document.getElementById('runButtons');
     const scoresDisplay = document.getElementById('scores');
@@ -118,27 +113,21 @@ function startGame(againstComputer) {
             clearInterval(interval);
             timerDisplay.innerText = '';
             runButtons.style.display = 'flex';
-            if (againstComputer) {
-                currentTurn = 'player1'; // Player always starts first
+            onValue(ref(db, 'rooms/' + currentRoom), (snapshot) => {
+                const roomData = snapshot.val();
+                currentTurn = roomData.turns;
+                scores = roomData.scores;
                 updateScores();
-            } else {
-                onValue(ref(db, 'rooms/' + currentRoom), (snapshot) => {
-                    const roomData = snapshot.val();
-                    currentTurn = roomData.turns;
-                    scores = roomData.scores;
-                    updateScores();
-                });
-            }
+            });
         }
     }
 
     interval = setInterval(updateTimer, 1000);
 
     function updateScores() {
-        const scoresDisplay = document.getElementById('scores');
         scoresDisplay.innerHTML = `
-            <p>Player 1 Score: ${scores[playerName]}</p>
-            <p>Player 2 Score: ${scores['Computer'] || scores['player2']}</p>
+            <p>${playerName} Score: ${scores[playerName] || 0}</p>
+            <p>Player 2 Score: ${scores['Player 2'] || 0}</p>
         `;
     }
 
@@ -148,18 +137,35 @@ function startGame(againstComputer) {
             const turnPath = 'rooms/' + currentRoom + '/turns';
             const scoresPath = 'rooms/' + currentRoom + '/scores/';
 
-            if (currentTurn === 'player1') {
+            if (currentTurn === playerName) {
                 set(ref(db, runsPath + playerName), run);
-                set(ref(db, scoresPath + playerName), (scores[playerName] || 0) + parseInt(run));
-                currentTurn = 'player2';
-            } else if (currentTurn === 'player2') {
-                set(ref(db, runsPath + 'Computer'), run);
-                set(ref(db, scoresPath + 'Computer'), (scores['Computer'] || 0) + parseInt(run));
-                currentTurn = 'player1';
+                get(ref(db, runsPath + 'Player 2')).then((snapshot) => {
+                    const opponentRun = snapshot.val() || 0;
+                    if (run === opponentRun) {
+                        alert('You are out!');
+                        currentTurn = 'Player 2';
+                    } else {
+                        set(ref(db, scoresPath + playerName), (scores[playerName] || 0) + parseInt(run));
+                        currentTurn = 'Player 2';
+                    }
+                    set(ref(db, turnPath), currentTurn);
+                    updateScores();
+                });
+            } else if (currentTurn === 'Player 2') {
+                set(ref(db, runsPath + 'Player 2'), run);
+                get(ref(db, runsPath + playerName)).then((snapshot) => {
+                    const playerRun = snapshot.val() || 0;
+                    if (run === playerRun) {
+                        alert('Player 2 is out!');
+                        currentTurn = playerName;
+                    } else {
+                        set(ref(db, scoresPath + 'Player 2'), (scores['Player 2'] || 0) + parseInt(run));
+                        currentTurn = playerName;
+                    }
+                    set(ref(db, turnPath), currentTurn);
+                    updateScores();
+                });
             }
-
-            set(ref(db, turnPath), currentTurn);
-            updateScores();
         } else {
             console.error('No room is active.');
         }
@@ -174,9 +180,7 @@ function startGame(againstComputer) {
 }
 
 // Event Listeners
-document.getElementById('startGameButton').addEventListener('click', showGameModeOptions);
-document.getElementById('multiplayerButton').addEventListener('click', startMultiplayer);
-document.getElementById('computerButton').addEventListener('click', startComputer);
+document.getElementById('startGameButton').addEventListener('click', startGame);
 document.getElementById('createRoomButton').addEventListener('click', createRoom);
 document.getElementById('joinRoomButton').addEventListener('click', joinRoom);
 
