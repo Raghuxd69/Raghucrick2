@@ -28,8 +28,6 @@ function goBack(page) {
     document.getElementById('multiplayerOptions').style.display = page === 'multiplayerOptions' ? 'block' : 'none';
     document.getElementById('roomOptions').style.display = page === 'roomOptions' ? 'block' : 'none';
     document.getElementById('gameArea').style.display = page === 'gameArea' ? 'block' : 'none';
-    document.getElementById('timer').style.display = page === 'gameArea' ? 'block' : 'none';
-    document.getElementById('runButtons').style.display = page === 'gameArea' ? 'block' : 'none';
 }
 
 function showGameModeOptions() {
@@ -47,7 +45,7 @@ function startMultiplayer() {
 
 function startComputer() {
     goBack('gameArea');
-    startGame();
+    startGame(true); // True indicates playing against computer
 }
 
 function createRoom() {
@@ -63,7 +61,7 @@ function createRoom() {
         turns: 'player1'
     });
     goBack('gameArea');
-    startGame();
+    startGame(false); // False indicates playing with another player
 }
 
 function joinRoom() {
@@ -76,7 +74,7 @@ function joinRoom() {
             if (roomData.player2 === null) {
                 set(ref(db, 'rooms/' + roomCode + '/player2'), playerName);
                 goBack('gameArea');
-                startGame();
+                startGame(false);
             } else {
                 alert('Room is full or already started');
             }
@@ -90,7 +88,7 @@ function generateRoomCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function startGame() {
+function startGame(againstComputer) {
     const timerDisplay = document.getElementById('timer');
     const runButtons = document.getElementById('runButtons');
     const scoresDisplay = document.getElementById('scores');
@@ -106,13 +104,13 @@ function startGame() {
             clearInterval(interval);
             timerDisplay.innerText = '';
             runButtons.style.display = 'block';
-            startTurn();
+            startTurn(againstComputer);
         }
     }
 
     interval = setInterval(updateTimer, 1000);
 
-    function startTurn() {
+    function startTurn(againstComputer) {
         // Logic for player turns
     }
 }
@@ -121,14 +119,19 @@ function submitRun(run) {
     // Submit run logic
 }
 
+// Initialize event listeners
+document.getElementById('startGameButton').addEventListener('click', showGameModeOptions);
+document.getElementById('multiplayerButton').addEventListener('click', startMultiplayer);
+document.getElementById('computerButton').addEventListener('click', startComputer);
+document.getElementById('createRoomButton').addEventListener('click', createRoom);
+document.getElementById('joinRoomButton').addEventListener('click', joinRoom);
+document.getElementById('backToHome').addEventListener('click', () => goBack('container'));
+document.getElementById('backToMultiplayer').addEventListener('click', () => goBack('multiplayerOptions'));
+document.getElementById('backToMultiplayerFromGame').addEventListener('click', () => goBack('multiplayerOptions'));
+
 // Initialize
 function initializeGame() {
-    document.getElementById('container').style.display = 'block';
-    document.getElementById('multiplayerOptions').style.display = 'none';
-    document.getElementById('roomOptions').style.display = 'none';
-    document.getElementById('gameArea').style.display = 'none';
-    document.getElementById('timer').style.display = 'none';
-    document.getElementById('runButtons').style.display = 'none';
+    goBack('container');
 }
 
 initializeGame();
