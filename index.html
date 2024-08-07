@@ -11,24 +11,24 @@
     <!-- Home Page -->
     <div id="container">
         <h1>Welcome to Hand Cricket</h1>
-        <button onclick="showGameModeOptions()">Start Game</button>
+        <button id="startGameButton">Start Game</button>
     </div>
 
     <!-- Multiplayer Options Page -->
     <div id="multiplayerOptions" style="display: none;">
         <h2>Choose Game Mode</h2>
-        <button onclick="startMultiplayer()">Multiplayer</button>
-        <button onclick="startComputer()">Play Against Computer</button>
-        <button onclick="goBack('container')">Back</button>
+        <button id="multiplayerButton">Multiplayer</button>
+        <button id="computerButton">Play Against Computer</button>
+        <button id="backToHome">Back</button>
     </div>
 
     <!-- Create or Join Room Page -->
     <div id="roomOptions" style="display: none;">
         <h2>Multiplayer Options</h2>
-        <button onclick="createRoom()">Create Room</button>
+        <button id="createRoomButton">Create Room</button>
         <input type="text" id="roomCodeInput" placeholder="Enter Room Code" />
-        <button onclick="joinRoom()">Join Room</button>
-        <button onclick="goBack('multiplayerOptions')">Back</button>
+        <button id="joinRoomButton">Join Room</button>
+        <button id="backToMultiplayer">Back</button>
     </div>
 
     <!-- Game Area Page -->
@@ -44,7 +44,7 @@
             <button onclick="submitRun(6)">6</button>
         </div>
         <div id="scores"></div>
-        <button onclick="goBack('multiplayerOptions')">Back</button>
+        <button id="backToMultiplayerFromGame">Back</button>
     </div>
 </body>
 </html>
