@@ -11,8 +11,7 @@
     <!-- Home Page -->
     <div id="container">
         <h1>Welcome to Hand Cricket</h1>
-        <input type="text" id="nameInput" placeholder="Enter your name" />
-        <button onclick="submitName()">Submit</button>
+        <button onclick="showGameModeOptions()">Start Game</button>
     </div>
 
     <!-- Multiplayer Options Page -->
@@ -20,6 +19,7 @@
         <h2>Choose Game Mode</h2>
         <button onclick="startMultiplayer()">Multiplayer</button>
         <button onclick="startComputer()">Play Against Computer</button>
+        <button onclick="goBack('container')">Back</button>
     </div>
 
     <!-- Create or Join Room Page -->
@@ -44,7 +44,7 @@
             <button onclick="submitRun(6)">6</button>
         </div>
         <div id="scores"></div>
-        <button onclick="goBack('home')">Back to Home</button>
+        <button onclick="goBack('multiplayerOptions')">Back</button>
     </div>
 </body>
 </html>
