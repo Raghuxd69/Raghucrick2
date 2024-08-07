@@ -21,6 +21,7 @@ const db = getDatabase(app);
 let currentRoom = null;
 let playerName = '';
 let currentTurn = '';
+let scores = {};
 
 // Functions
 function goBack(page) {
@@ -117,50 +118,59 @@ function startGame(againstComputer) {
             clearInterval(interval);
             timerDisplay.innerText = '';
             runButtons.style.display = 'block';
-            startTurn(againstComputer);
+            if (againstComputer) {
+                currentTurn = 'player1'; // Player always starts first
+                updateScores();
+            } else {
+                onValue(ref(db, 'rooms/' + currentRoom), (snapshot) => {
+                    const roomData = snapshot.val();
+                    currentTurn = roomData.turns;
+                    scores = roomData.scores;
+                    updateScores();
+                });
+            }
         }
     }
 
     interval = setInterval(updateTimer, 1000);
 
-    function startTurn(againstComputer) {
-        if (againstComputer) {
-            currentTurn = 'player1'; // Player always starts first
+    function updateScores() {
+        const scoresDisplay = document.getElementById('scores');
+        scoresDisplay.innerHTML = `
+            <p>Player 1 Score: ${scores[playerName]}</p>
+            <p>Computer Score: ${scores['Computer']}</p>
+        `;
+    }
+
+    function submitRun(run) {
+        if (currentRoom) {
+            const runsPath = 'rooms/' + currentRoom + '/runs/';
+            const turnPath = 'rooms/' + currentRoom + '/turns';
+            const scoresPath = 'rooms/' + currentRoom + '/scores/';
+
+            if (currentTurn === 'player1') {
+                set(ref(db, runsPath + playerName), run);
+                set(ref(db, scoresPath + playerName), (scores[playerName] || 0) + parseInt(run));
+                currentTurn = 'player2';
+            } else if (currentTurn === 'player2') {
+                set(ref(db, runsPath + 'Computer'), run);
+                set(ref(db, scoresPath + 'Computer'), (scores['Computer'] || 0) + parseInt(run));
+                currentTurn = 'player1';
+            }
+
+            set(ref(db, turnPath), currentTurn);
+            updateScores();
         } else {
-            onValue(ref(db, 'rooms/' + currentRoom), (snapshot) => {
-                const roomData = snapshot.val();
-                currentTurn = roomData.turns;
-                updateScores(roomData.scores);
-            }, { onlyOnce: true });
+            console.error('No room is active.');
         }
     }
-}
 
-function submitRun(run) {
-    if (currentRoom) {
-        const runsPath = 'rooms/' + currentRoom + '/runs/';
-        const turnPath = 'rooms/' + currentRoom + '/turns';
-
-        if (currentTurn === 'player1') {
-            set(ref(db, runsPath + playerName), run);
-            currentTurn = 'player2';
-        } else if (currentTurn === 'player2') {
-            set(ref(db, runsPath + 'Computer'), run);
-            currentTurn = 'player1';
-        }
-
-        set(ref(db, turnPath), currentTurn);
-    } else {
-        console.error('No room is active.');
-    }
-}
-
-function updateScores(scores) {
-    const scoresDisplay = document.getElementById('scores');
-    scoresDisplay.innerHTML = `
-        <p>Player 1 Score: ${scores[playerName]}</p>
-        <p>Computer Score: ${scores['Computer']}</p>
-    `;
+    document.querySelectorAll('.runButton').forEach(button => {
+        button.addEventListener('click', () => {
+            const run = button.getAttribute('data-run');
+            submitRun(run);
+        });
+    });
 }
 
 // Initialize event listeners
