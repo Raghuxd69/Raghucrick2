@@ -3,48 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Cricket Game</title>
+    <title>Cricket Game</title>
     <link rel="stylesheet" href="main.css">
-    <script type="module" src="script.js" defer></script>
 </head>
 <body>
-    <!-- Home Page -->
     <div id="container">
-        <h1>Welcome to Hand Cricket</h1>
         <button id="startGameButton">Start Game</button>
     </div>
 
-    <!-- Multiplayer Options Page -->
-    <div id="multiplayerOptions" style="display: none;">
-        <h2>Choose Game Mode</h2>
+    <div id="multiplayerOptions" style="display:none;">
         <button id="multiplayerButton">Multiplayer</button>
-        <button id="computerButton">Play Against Computer</button>
+        <button id="computerButton">Play with Computer</button>
         <button id="backToHome">Back</button>
     </div>
 
-    <!-- Create or Join Room Page -->
-    <div id="roomOptions" style="display: none;">
-        <h2>Multiplayer Options</h2>
+    <div id="roomOptions" style="display:none;">
         <button id="createRoomButton">Create Room</button>
-        <input type="text" id="roomCodeInput" placeholder="Enter Room Code" />
+        <input type="text" id="roomCodeInput" placeholder="Enter Room Code">
         <button id="joinRoomButton">Join Room</button>
         <button id="backToMultiplayer">Back</button>
     </div>
 
-    <!-- Game Area Page -->
-    <div id="gameArea" style="display: none;">
-        <h2 id="gameTitle"></h2>
-        <div id="timer"></div>
-        <div id="runButtons">
-            <button onclick="submitRun(1)">1</button>
-            <button onclick="submitRun(2)">2</button>
-            <button onclick="submitRun(3)">3</button>
-            <button onclick="submitRun(4)">4</button>
-            <button onclick="submitRun(5)">5</button>
-            <button onclick="submitRun(6)">6</button>
+    <div id="gameArea" style="display:none;">
+        <h2 id="timer"></h2>
+        <div id="scores">
+            <p>Player 1 Score: 0</p>
+            <p>Player 2 Score: 0</p>
         </div>
-        <div id="scores"></div>
+        <div id="runButtons" style="display:none;">
+            <button class="runButton" data-run="1">1</button>
+            <button class="runButton" data-run="2">2</button>
+            <button class="runButton" data-run="3">3</button>
+            <button class="runButton" data-run="4">4</button>
+            <button class="runButton" data-run="5">5</button>
+            <button class="runButton" data-run="6">6</button>
+        </div>
         <button id="backToMultiplayerFromGame">Back</button>
     </div>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
