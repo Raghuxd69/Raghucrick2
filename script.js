@@ -60,12 +60,15 @@ function createRoom() {
         },
         turns: 'player1',
         runs: {
-            player1: 0,
-            Computer: 0
+            [playerName]: 0,
+            'Computer': 0
         }
+    }).then(() => {
+        goBack('gameArea');
+        startGame(false); // False indicates playing with another player
+    }).catch((error) => {
+        console.error('Error creating room:', error);
     });
-    goBack('gameArea');
-    startGame(false); // False indicates playing with another player
 }
 
 function joinRoom() {
@@ -76,15 +79,21 @@ function joinRoom() {
         if (snapshot.exists()) {
             const roomData = snapshot.val();
             if (roomData.player2 === null) {
-                set(ref(db, 'rooms/' + roomCode + '/player2'), playerName);
-                goBack('gameArea');
-                startGame(false);
+                set(ref(db, 'rooms/' + roomCode + '/player2'), playerName)
+                    .then(() => {
+                        goBack('gameArea');
+                        startGame(false);
+                    }).catch((error) => {
+                        console.error('Error joining room:', error);
+                    });
             } else {
                 alert('Room is full or already started');
             }
         } else {
             alert('Room not found');
         }
+    }).catch((error) => {
+        console.error('Error fetching room data:', error);
     });
 }
 
@@ -122,21 +131,25 @@ function startGame(againstComputer) {
                 const roomData = snapshot.val();
                 currentTurn = roomData.turns;
                 updateScores(roomData.scores);
-            });
+            }, { onlyOnce: true });
         }
     }
 }
 
 function submitRun(run) {
     if (currentRoom) {
+        const runsPath = 'rooms/' + currentRoom + '/runs/';
+        const turnPath = 'rooms/' + currentRoom + '/turns';
+
         if (currentTurn === 'player1') {
-            set(ref(db, 'rooms/' + currentRoom + '/runs/player1'), run);
+            set(ref(db, runsPath + playerName), run);
             currentTurn = 'player2';
         } else if (currentTurn === 'player2') {
-            set(ref(db, 'rooms/' + currentRoom + '/runs/player2'), run);
+            set(ref(db, runsPath + 'Computer'), run);
             currentTurn = 'player1';
         }
-        set(ref(db, 'rooms/' + currentRoom + '/turns'), currentTurn);
+
+        set(ref(db, turnPath), currentTurn);
     } else {
         console.error('No room is active.');
     }
