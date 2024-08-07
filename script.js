@@ -117,7 +117,7 @@ function startGame(againstComputer) {
         } else {
             clearInterval(interval);
             timerDisplay.innerText = '';
-            runButtons.style.display = 'block';
+            runButtons.style.display = 'flex';
             if (againstComputer) {
                 currentTurn = 'player1'; // Player always starts first
                 updateScores();
@@ -138,7 +138,7 @@ function startGame(againstComputer) {
         const scoresDisplay = document.getElementById('scores');
         scoresDisplay.innerHTML = `
             <p>Player 1 Score: ${scores[playerName]}</p>
-            <p>Computer Score: ${scores['Computer']}</p>
+            <p>Player 2 Score: ${scores['Computer'] || scores['player2']}</p>
         `;
     }
 
@@ -173,12 +173,13 @@ function startGame(againstComputer) {
     });
 }
 
-// Initialize event listeners
+// Event Listeners
 document.getElementById('startGameButton').addEventListener('click', showGameModeOptions);
 document.getElementById('multiplayerButton').addEventListener('click', startMultiplayer);
 document.getElementById('computerButton').addEventListener('click', startComputer);
 document.getElementById('createRoomButton').addEventListener('click', createRoom);
 document.getElementById('joinRoomButton').addEventListener('click', joinRoom);
+
 document.getElementById('backToHome').addEventListener('click', () => goBack('container'));
 document.getElementById('backToMultiplayer').addEventListener('click', () => goBack('multiplayerOptions'));
 document.getElementById('backToMultiplayerFromGame').addEventListener('click', () => goBack('multiplayerOptions'));
