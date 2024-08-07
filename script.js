@@ -1,4 +1,3 @@
-// Firebase setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
@@ -21,6 +20,7 @@ const db = getDatabase(app);
 // State variables
 let currentRoom = null;
 let playerName = '';
+let currentTurn = '';
 
 // Functions
 function goBack(page) {
@@ -58,7 +58,11 @@ function createRoom() {
             [playerName]: 0,
             'Computer': 0
         },
-        turns: 'player1'
+        turns: 'player1',
+        runs: {
+            player1: 0,
+            Computer: 0
+        }
     });
     goBack('gameArea');
     startGame(false); // False indicates playing with another player
@@ -111,12 +115,39 @@ function startGame(againstComputer) {
     interval = setInterval(updateTimer, 1000);
 
     function startTurn(againstComputer) {
-        // Logic for player turns
+        if (againstComputer) {
+            currentTurn = 'player1'; // Player always starts first
+        } else {
+            onValue(ref(db, 'rooms/' + currentRoom), (snapshot) => {
+                const roomData = snapshot.val();
+                currentTurn = roomData.turns;
+                updateScores(roomData.scores);
+            });
+        }
     }
 }
 
 function submitRun(run) {
-    // Submit run logic
+    if (currentRoom) {
+        if (currentTurn === 'player1') {
+            set(ref(db, 'rooms/' + currentRoom + '/runs/player1'), run);
+            currentTurn = 'player2';
+        } else if (currentTurn === 'player2') {
+            set(ref(db, 'rooms/' + currentRoom + '/runs/player2'), run);
+            currentTurn = 'player1';
+        }
+        set(ref(db, 'rooms/' + currentRoom + '/turns'), currentTurn);
+    } else {
+        console.error('No room is active.');
+    }
+}
+
+function updateScores(scores) {
+    const scoresDisplay = document.getElementById('scores');
+    scoresDisplay.innerHTML = `
+        <p>Player 1 Score: ${scores[playerName]}</p>
+        <p>Computer Score: ${scores['Computer']}</p>
+    `;
 }
 
 // Initialize event listeners
@@ -128,10 +159,3 @@ document.getElementById('joinRoomButton').addEventListener('click', joinRoom);
 document.getElementById('backToHome').addEventListener('click', () => goBack('container'));
 document.getElementById('backToMultiplayer').addEventListener('click', () => goBack('multiplayerOptions'));
 document.getElementById('backToMultiplayerFromGame').addEventListener('click', () => goBack('multiplayerOptions'));
-
-// Initialize
-function initializeGame() {
-    goBack('container');
-}
-
-initializeGame();
