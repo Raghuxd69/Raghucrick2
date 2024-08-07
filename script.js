@@ -24,7 +24,7 @@ let playerName = '';
 
 // Functions
 function goBack(page) {
-    document.getElementById('container').style.display = page === 'home' ? 'block' : 'none';
+    document.getElementById('container').style.display = page === 'container' ? 'block' : 'none';
     document.getElementById('multiplayerOptions').style.display = page === 'multiplayerOptions' ? 'block' : 'none';
     document.getElementById('roomOptions').style.display = page === 'roomOptions' ? 'block' : 'none';
     document.getElementById('gameArea').style.display = page === 'gameArea' ? 'block' : 'none';
@@ -32,12 +32,12 @@ function goBack(page) {
     document.getElementById('runButtons').style.display = page === 'gameArea' ? 'block' : 'none';
 }
 
-function submitName() {
-    playerName = document.getElementById('nameInput').value;
+function showGameModeOptions() {
+    playerName = prompt('Enter your name:');
     if (playerName) {
         goBack('multiplayerOptions');
     } else {
-        alert('Please enter your name');
+        alert('Please enter your name to proceed.');
     }
 }
 
